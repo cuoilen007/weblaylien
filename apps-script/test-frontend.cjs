@@ -10,13 +10,16 @@ form.elements.name.value='Test';form.elements.phone.value='0901234567';form.elem
 form.querySelector=()=>submit;form.querySelectorAll=()=>[...Object.values(form.elements),submit];form.reset=()=>{};
 modal.open=true;modal.showModal=()=>{modal.open=true;};modal.close=()=>{modal.open=false;};
 const map={'#leadModal':modal,'#plan':form.elements.plan,'#leadForm':form,'.x':close,'#done':done,'.form-view':view,'.success':success};
-let count=0,posted,timer,uuid=0,options,resets=0;
+let count=0,posted,timer,uuid=0,options,resets=0,renders=0;
 const document={body,querySelector:s=>map[s],querySelectorAll:()=>[],createElement:tag=>{const n=node();if(tag==='form')n.submit=()=>{count++;posted=Object.fromEntries(n.children.map(x=>[x.name,x.value]));};return n;}};
-const window={listeners:{},addEventListener(k,f){this.listeners[k]=f},turnstile:{render:(box,opts)=>{options=opts;return 'widget';},remove(){},reset:()=>{resets++;}}};
+const window={listeners:{},addEventListener(k,f){this.listeners[k]=f},turnstile:{render:(box,opts)=>{assert.equal(box,'#leadCaptcha');renders++;options=opts;return 'widget';},remove(){},reset:()=>{resets++;}}};
 vm.runInNewContext(script,{document,window,URL,crypto:{randomUUID:()=>`test-uuid-${++uuid}`},setTimeout:f=>(timer=f,1),clearTimeout:()=>{},console});
 window.initializeLeadCaptcha();
 assert.equal(options.sitekey,'0x4AAAAAAE5-wJyxSbcuaCuk');assert.equal(options.action,'lead');
 assert.equal(options.size,'flexible');boxWidth=260;window.listeners.resize();assert.equal(options.size,'compact');
+boxWidth=400;window.listeners.resize();assert.equal(options.size,'flexible');
+const rendersBeforeHeightResize=renders;options.callback('height-resize-token');window.listeners.resize();assert.equal(options.size,'flexible');assert.equal(renders,rendersBeforeHeightResize,'Height-only resize must not recreate CAPTCHA');
+boxWidth=304;window.listeners.resize();assert.equal(options.size,'compact');
 boxWidth=400;window.listeners.resize();assert.equal(options.size,'flexible');
 const send=()=>form.listeners.submit({preventDefault(){}});
 const reply=(origin,id,ok,code)=>window.listeners.message({origin,data:{type:'laylien-lead-result',requestId:id,ok,code}});
