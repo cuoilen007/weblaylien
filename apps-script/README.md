@@ -13,6 +13,9 @@ phía máy chủ sau khi cấu hình Script Properties và triển khai Code.gs.
 3. Secret key chỉ nhập trong Apps Script → Project Settings → Script Properties:
    - `TURNSTILE_SECRET_KEY`: Secret key của widget.
    - `TURNSTILE_HOSTNAMES`: `webhoatoc.click,cuoilen007.github.io` (chỉ hostname thực sự dùng).
+   - `SHEET_ID`: ID spreadsheet của bạn, lấy phần giữa `/d/` và `/edit` trong URL Sheet.
+   - `NOTIFY_EMAIL`: địa chỉ email nhận thông báo của bạn.
+   Hai giá trị này chỉ lưu trong Script Properties, không ghi vào mã nguồn hoặc README.
    Không gửi Secret key qua chat, không commit vào GitHub, không đặt trong HTML.
 4. Sau khi frontend đã tích hợp, thay mã Apps Script bằng Code.gs, chạy setup để
    cấp quyền UrlFetch/Sheets/Mail. setup không xóa dữ liệu hiện có.

@@ -1,12 +1,11 @@
 // Replace the deployed Apps Script only AFTER configuring Turnstile on the website.
 // Secret keys belong in Script Properties, never in this file or frontend code.
-const SHEET_ID = 'PRIVATE_SPREADSHEET_ID';
-const NOTIFY_EMAIL = 'owner@example.com';
 const HEADERS = ['Mã yêu cầu', 'Thời gian', 'Tên khách', 'Điện thoại', 'Gói dịch vụ', 'Thông báo email'];
 const LIMITS = {hour: 20, day: 60, phoneDay: 2, phoneCooldownMs: 10 * 60 * 1000};
 
 function setup() {
-  const book = SpreadsheetApp.openById(SHEET_ID);
+  const {sheetId} = leadConfig_();
+  const book = SpreadsheetApp.openById(sheetId);
   let sheet = book.getSheetByName('Khách đăng ký');
   if (!sheet) sheet = book.insertSheet('Khách đăng ký');
   if (sheet.getLastRow() === 0) {
@@ -15,6 +14,15 @@ function setup() {
     sheet.getRange(1, 1, 1, HEADERS.length).setFontWeight('bold');
   }
   MailApp.getRemainingDailyQuota();
+}
+
+function leadConfig_() {
+  const props = PropertiesService.getScriptProperties();
+  const sheetId = String(props.getProperty('SHEET_ID') || '').trim();
+  const notifyEmail = String(props.getProperty('NOTIFY_EMAIL') || '').trim();
+  if (!/^[a-zA-Z0-9_-]{20,}$/.test(sheetId) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(notifyEmail))
+    throw new Error('CONFIG');
+  return {sheetId, notifyEmail};
 }
 
 function validateLead_(p) {
@@ -80,10 +88,11 @@ function doPost(e) {
   try {
     if (!e || !e.postData || e.postData.length > 12000) throw new Error('INVALID');
     const lead = validateLead_(p);
+    const {sheetId, notifyEmail} = leadConfig_();
     // Required even for retries: request IDs are public identifiers, not passwords.
     verifyCaptcha_(p);
     if (!lock.tryLock(5000)) throw new Error('BUSY');
-    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('Khách đăng ký');
+    const sheet = SpreadsheetApp.openById(sheetId).getSheetByName('Khách đăng ký');
     if (!sheet) throw new Error('CONFIG');
     const rowCount = Math.max(0, sheet.getLastRow() - 1);
     const rows = rowCount ? sheet.getRange(2, 1, rowCount, 6).getValues() : [];
@@ -108,9 +117,9 @@ function doPost(e) {
         sheet.getRange(rowIndex, 6).setValue('Đang gửi — không gửi lại tự động');
         SpreadsheetApp.flush();
         try {
-          MailApp.sendEmail({to: NOTIFY_EMAIL, subject: '[Web Hỏa Tốc] Khách đăng ký mới',
+          MailApp.sendEmail({to: notifyEmail, subject: '[Web Hỏa Tốc] Khách đăng ký mới',
             body: 'Tên: ' + lead.name + '\nĐiện thoại: ' + lead.phone + '\nGói: ' + lead.plan +
-              '\nMã: ' + lead.id + '\n\nXem Sheet: https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/edit'});
+              '\nMã: ' + lead.id + '\n\nXem Sheet: https://docs.google.com/spreadsheets/d/' + sheetId + '/edit'});
           sheet.getRange(rowIndex, 6).setValue('Đã gửi');
         } catch (_) {
           sheet.getRange(rowIndex, 6).setValue('Cần kiểm tra email — không gửi lại tự động');

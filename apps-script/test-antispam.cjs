@@ -15,7 +15,7 @@ const sheet = {
 const context = vm.createContext({Date, console: {error() {}},
   LockService: {getScriptLock: () => ({tryLock: () => true, hasLock: () => true, releaseLock() {}})},
   PropertiesService: {getScriptProperties: () => ({getProperty: key =>
-    key === 'TURNSTILE_SECRET_KEY' ? secret : hosts})},
+    ({TURNSTILE_SECRET_KEY:secret,TURNSTILE_HOSTNAMES:hosts,SHEET_ID:'mock-spreadsheet-id-123456789',NOTIFY_EMAIL:'owner@example.com'})[key]})},
   UrlFetchApp: {fetch: () => ({getResponseCode: () => 200, getContentText: () => JSON.stringify(captcha)})},
   SpreadsheetApp: {openById: () => ({getSheetByName: () => sheet}), flush() {}},
   MailApp: {getRemainingDailyQuota: () => quota, sendEmail: () => { mails++; }},
