@@ -66,9 +66,19 @@
     const trap=document.createElement('div');trap.className='lead-trap';trap.innerHTML='<label>Để trống trường này<input name="website" tabindex="-1" autocomplete="off"></label>';form.appendChild(trap);
     form.elements.name.maxLength=100;form.elements.phone.maxLength=25;form.elements.phone.pattern='[+0-9 ]{8,25}';
     const receiver=document.createElement('iframe');receiver.name='lead-receiver';receiver.title='Tiếp nhận yêu cầu';receiver.hidden=true;document.body.appendChild(receiver);
-    let busy=false,requestId='',fingerprint='',timer=null,pendingId='';
+    let busy=false,requestId='',fingerprint='',timer=null,pendingId='',captchaToken='',captchaWidget=null;
+    const captchaBox=document.createElement('div');captchaBox.style.margin='14px 0';captchaBox.setAttribute('aria-label','Xác minh chống spam');form.insertBefore(captchaBox,submit);
+    function resetCaptcha(){captchaToken='';if(captchaWidget!==null&&window.turnstile)window.turnstile.reset(captchaWidget);}
+    window.initializeLeadCaptcha=()=>{
+      captchaWidget=window.turnstile.render(captchaBox,{sitekey:'0x4AAAAAAE5-wJyxSbcuaCuk',action:'lead',theme:'light',size:'compact','response-field':false,
+        callback:token=>{captchaToken=token;if(!busy)status.hidden=true;},
+        'expired-callback':()=>{captchaToken='';},
+        'error-callback':()=>{captchaToken='';if(!busy){status.textContent='Không tải được xác minh chống spam. Vui lòng kiểm tra mạng rồi tải lại trang.';status.hidden=false;}return true;}
+      });
+    };
+    const captchaScript=document.createElement('script');captchaScript.src='https://challenges.cloudflare.com/turnstile/v0/api.js?onload=initializeLeadCaptcha&render=explicit';captchaScript.async=true;captchaScript.onerror=()=>{status.textContent='Không tải được xác minh chống spam. Vui lòng tải lại trang hoặc tắt tiện ích chặn nội dung cho trang này.';status.hidden=false;};document.body.appendChild(captchaScript);
     function setBusy(value){busy=value;form.setAttribute('aria-busy',String(value));form.querySelectorAll('input,select,button').forEach(x=>x.disabled=value);close.disabled=value;submit.textContent=value?'Đang gửi yêu cầu…':'Kiểm tra lịch hôm nay →';}
-    function fail(message){clearTimeout(timer);setBusy(false);status.textContent=message;status.hidden=false;}
+    function fail(message){clearTimeout(timer);setBusy(false);resetCaptcha();status.textContent=message;status.hidden=false;}
     document.querySelectorAll('.open-modal').forEach(b=>b.addEventListener('click',()=>{if(busy)return;if(b.dataset.plan)plan.value=b.dataset.plan;modal.showModal()}));
     close.addEventListener('click',()=>{if(!busy)modal.close()});
     modal.addEventListener('cancel',e=>{if(busy)e.preventDefault()});
@@ -78,18 +88,19 @@
       if(e.origin!=='https://script.google.com'&&!(e.origin.startsWith('https://')&&host.endsWith('.googleusercontent.com')))return;
       const data=e.data;
       if(!data||data.type!=='laylien-lead-result'||!pendingId||data.requestId!==pendingId)return;
-      if(data.ok!==true){fail('Chưa thể hoàn tất yêu cầu. Vui lòng thử gửi lại.');return;}
-      clearTimeout(timer);pendingId='';setBusy(false);status.hidden=true;
+      if(data.ok!==true){const messages={CAPTCHA:'Xác minh đã hết hạn hoặc không hợp lệ. Vui lòng xác minh lại.',RATE_LIMIT:'Bạn đã gửi gần đây hoặc hệ thống đang nhận quá nhiều yêu cầu. Vui lòng thử lại sau.',CONFIG:'Hệ thống nhận yêu cầu đang được cấu hình. Vui lòng thử lại sau.',INVALID:'Vui lòng kiểm tra tên và số điện thoại Việt Nam của bạn.'};fail(messages[data.code]||'Chưa thể hoàn tất yêu cầu. Vui lòng xác minh rồi thử gửi lại.');return;}
+      clearTimeout(timer);pendingId='';setBusy(false);resetCaptcha();status.hidden=true;
       document.querySelector('.form-view').style.display='none';document.querySelector('.success').style.display='block';document.querySelector('#done').focus();
     });
     form.addEventListener('submit',e=>{
       e.preventDefault();if(busy||!form.reportValidity())return;
       const values={name:form.elements.name.value.trim(),phone:form.elements.phone.value.trim(),plan:plan.value,website:form.elements.website.value};
       if(!values.name){form.elements.name.setCustomValidity('Vui lòng nhập tên của bạn.');form.elements.name.reportValidity();return;}
+      if(!captchaToken){status.textContent='Vui lòng hoàn tất xác minh chống spam trước khi gửi.';status.hidden=false;return;}
       const next=JSON.stringify(values);if(next!==fingerprint){fingerprint=next;requestId=crypto.randomUUID();}pendingId=requestId;
       status.hidden=true;setBusy(true);
       const transport=document.createElement('form');transport.method='POST';transport.action=endpoint;transport.target=receiver.name;transport.hidden=true;
-      Object.entries({...values,requestId}).forEach(([name,value])=>{const input=document.createElement('input');input.type='hidden';input.name=name;input.value=value;transport.appendChild(input);});
+      Object.entries({...values,requestId,'cf-turnstile-response':captchaToken}).forEach(([name,value])=>{const input=document.createElement('input');input.type='hidden';input.name=name;input.value=value;transport.appendChild(input);});
       document.body.appendChild(transport);
       timer=setTimeout(()=>fail('Chưa nhận được xác nhận từ Google. Thông tin vẫn được giữ; bạn có thể thử gửi lại.'),60000);
       try{transport.submit();}catch{pendingId='';fail('Không thể gửi yêu cầu. Vui lòng thử lại.');}finally{transport.remove();}
@@ -97,7 +108,7 @@
     form.elements.name.addEventListener('input',()=>form.elements.name.setCustomValidity(''));
     form.addEventListener('input',()=>{if(!busy)pendingId=''});
     document.querySelector('#done').addEventListener('click',()=>{
-      modal.close();document.querySelector('.form-view').style.display='block';document.querySelector('.success').style.display='none';form.reset();status.hidden=true;requestId='';fingerprint='';pendingId='';
+      modal.close();document.querySelector('.form-view').style.display='block';document.querySelector('.success').style.display='none';form.reset();resetCaptcha();status.hidden=true;requestId='';fingerprint='';pendingId='';
     });
   </script>
 </body>
