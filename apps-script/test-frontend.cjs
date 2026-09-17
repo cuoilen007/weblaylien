@@ -1,18 +1,21 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const script=fs.readFileSync('dist/index.html','utf8').match(/<script>([\s\S]*?)<\/script>/)[1];
-function node(){return {style:{},listeners:{},children:[],value:'',disabled:false,addEventListener(k,f){this.listeners[k]=f},setAttribute(){},appendChild(x){this.children.push(x)},insertBefore(x){this.children.push(x)},remove(){},focus(){},setCustomValidity(){},reportValidity(){return true}};}
+let boxWidth=400;
+function node(){return {style:{},listeners:{},children:[],value:'',disabled:false,getBoundingClientRect(){return {width:boxWidth}},addEventListener(k,f){this.listeners[k]=f},setAttribute(){},appendChild(x){this.children.push(x)},insertBefore(x){this.children.push(x)},remove(){},focus(){},setCustomValidity(){},reportValidity(){return true}};}
 const form=node(),modal=node(),submit=node(),close=node(),done=node(),view=node(),success=node(),body=node();
 form.elements={name:node(),phone:node(),plan:node(),website:node()};
 form.elements.name.value='Test';form.elements.phone.value='0901234567';form.elements.plan.value='Web 1 trang';
 form.querySelector=()=>submit;form.querySelectorAll=()=>[...Object.values(form.elements),submit];form.reset=()=>{};
-modal.showModal=()=>{};modal.close=()=>{};
+modal.open=true;modal.showModal=()=>{modal.open=true;};modal.close=()=>{modal.open=false;};
 const map={'#leadModal':modal,'#plan':form.elements.plan,'#leadForm':form,'.x':close,'#done':done,'.form-view':view,'.success':success};
 let count=0,posted,timer,uuid=0,options,resets=0;
 const document={body,querySelector:s=>map[s],querySelectorAll:()=>[],createElement:tag=>{const n=node();if(tag==='form')n.submit=()=>{count++;posted=Object.fromEntries(n.children.map(x=>[x.name,x.value]));};return n;}};
-const window={listeners:{},addEventListener(k,f){this.listeners[k]=f},turnstile:{render:(box,opts)=>{options=opts;return 'widget';},reset:()=>{resets++;}}};
+const window={listeners:{},addEventListener(k,f){this.listeners[k]=f},turnstile:{render:(box,opts)=>{options=opts;return 'widget';},remove(){},reset:()=>{resets++;}}};
 vm.runInNewContext(script,{document,window,URL,crypto:{randomUUID:()=>`test-uuid-${++uuid}`},setTimeout:f=>(timer=f,1),clearTimeout:()=>{},console});
 window.initializeLeadCaptcha();
 assert.equal(options.sitekey,'0x4AAAAAAE5-wJyxSbcuaCuk');assert.equal(options.action,'lead');
+assert.equal(options.size,'flexible');boxWidth=260;window.listeners.resize();assert.equal(options.size,'compact');
+boxWidth=400;window.listeners.resize();assert.equal(options.size,'flexible');
 const send=()=>form.listeners.submit({preventDefault(){}});
 const reply=(origin,id,ok,code)=>window.listeners.message({origin,data:{type:'laylien-lead-result',requestId:id,ok,code}});
 send();assert.equal(count,0,'missing CAPTCHA blocked');

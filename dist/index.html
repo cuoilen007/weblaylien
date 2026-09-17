@@ -67,10 +67,12 @@
     form.elements.name.maxLength=100;form.elements.phone.maxLength=25;form.elements.phone.pattern='[+0-9 ]{8,25}';
     const receiver=document.createElement('iframe');receiver.name='lead-receiver';receiver.title='Tiếp nhận yêu cầu';receiver.hidden=true;document.body.appendChild(receiver);
     let busy=false,requestId='',fingerprint='',timer=null,pendingId='',captchaToken='',captchaWidget=null;
-    const captchaBox=document.createElement('div');captchaBox.style.margin='14px 0';captchaBox.setAttribute('aria-label','Xác minh chống spam');form.insertBefore(captchaBox,submit);
+    const captchaBox=document.createElement('div');captchaBox.style.cssText='margin:16px 0 0;display:flex;justify-content:center;min-width:0';captchaBox.setAttribute('aria-label','Xác minh chống spam');form.insertBefore(captchaBox,submit);
     function resetCaptcha(){captchaToken='';if(captchaWidget!==null&&window.turnstile)window.turnstile.reset(captchaWidget);}
     window.initializeLeadCaptcha=()=>{
-      captchaWidget=window.turnstile.render(captchaBox,{sitekey:'0x4AAAAAAE5-wJyxSbcuaCuk',action:'lead',theme:'light',size:'compact','response-field':false,
+      if(!window.turnstile||!modal.open||captchaWidget!==null)return;
+      const size=captchaBox.getBoundingClientRect().width>=300?'flexible':'compact';
+      captchaWidget=window.turnstile.render(captchaBox,{sitekey:'0x4AAAAAAE5-wJyxSbcuaCuk',action:'lead',theme:'light',size,'response-field':false,
         callback:token=>{captchaToken=token;if(!busy)status.hidden=true;},
         'expired-callback':()=>{captchaToken='';},
         'error-callback':()=>{captchaToken='';if(!busy){status.textContent='Không tải được xác minh chống spam. Vui lòng kiểm tra mạng rồi tải lại trang.';status.hidden=false;}return true;}
@@ -79,7 +81,8 @@
     const captchaScript=document.createElement('script');captchaScript.src='https://challenges.cloudflare.com/turnstile/v0/api.js?onload=initializeLeadCaptcha&render=explicit';captchaScript.async=true;captchaScript.onerror=()=>{status.textContent='Không tải được xác minh chống spam. Vui lòng tải lại trang hoặc tắt tiện ích chặn nội dung cho trang này.';status.hidden=false;};document.body.appendChild(captchaScript);
     function setBusy(value){busy=value;form.setAttribute('aria-busy',String(value));form.querySelectorAll('input,select,button').forEach(x=>x.disabled=value);close.disabled=value;submit.textContent=value?'Đang gửi yêu cầu…':'Kiểm tra lịch hôm nay →';}
     function fail(message){clearTimeout(timer);setBusy(false);resetCaptcha();status.textContent=message;status.hidden=false;}
-    document.querySelectorAll('.open-modal').forEach(b=>b.addEventListener('click',()=>{if(busy)return;if(b.dataset.plan)plan.value=b.dataset.plan;modal.showModal()}));
+    document.querySelectorAll('.open-modal').forEach(b=>b.addEventListener('click',()=>{if(busy)return;if(b.dataset.plan)plan.value=b.dataset.plan;modal.showModal();window.initializeLeadCaptcha()}));
+    window.addEventListener('resize',()=>{if(busy||!modal.open||captchaWidget===null)return;captchaToken='';window.turnstile.remove(captchaWidget);captchaWidget=null;window.initializeLeadCaptcha();});
     close.addEventListener('click',()=>{if(!busy)modal.close()});
     modal.addEventListener('cancel',e=>{if(busy)e.preventDefault()});
     modal.addEventListener('click',e=>{if(e.target===modal&&!busy)modal.close()});
