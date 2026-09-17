@@ -33,7 +33,10 @@ phía máy chủ sau khi cấu hình Script Properties và triển khai Code.gs.
 - Hạn mức dùng dữ liệu Sheet và khóa máy chủ, không tin IP/timestamp từ trình duyệt.
 - Chỉ tự động thử gửi một email cho mỗi yêu cầu. Nếu email lỗi hoặc hết quota,
   khách vẫn được lưu; kiểm tra cột trạng thái để xử lý thủ công.
-- Chỉ nhận số điện thoại Việt Nam 10 chữ số hoặc dạng +84 tương đương.
+- Chỉ nhận định dạng di động Việt Nam 10 chữ số đầu 03/05/07/08/09 hoặc cố định
+  11 chữ số đầu 02; cho phép +84/84 thay 0, khoảng trắng, dấu chấm/gạch ngang phân cách.
+  Đây là kiểm tra định dạng, không xác minh số được cấp phát/đang hoạt động hoặc chủ sở hữu.
+- Tên chỉ gồm chữ cái Unicode và khoảng trắng thông thường; chuẩn hóa NFC để hỗ trợ chữ có dấu.
 - Không có API đọc/xóa Sheet; chống công thức độc trong dữ liệu nhập.
 
 ## Giới hạn và vận hành

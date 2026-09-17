@@ -27,18 +27,18 @@ function leadConfig_() {
 
 function validateLead_(p) {
   const lead = {
-    id: String(p.requestId || ''), name: String(p.name || '').trim(),
+    id: String(p.requestId || ''), name: String(p.name || '').normalize('NFC').trim(),
     phone: String(p.phone || '').trim(), plan: String(p.plan || '').trim()
   };
   if (!/^[a-zA-Z0-9-]{16,80}$/.test(lead.id) || !lead.name || lead.name.length > 100 ||
-      /[\x00-\x1f\x7f]/.test(lead.name) || !/^[+\d ().-]{8,25}$/.test(lead.phone) ||
+      !/^\p{L}+(?: +\p{L}+)*$/u.test(lead.name) || !/^(?:0|\+?84)[0-9 .-]+$/.test(lead.phone) || lead.phone.length > 25 ||
       !['Web 1 trang', 'Web giới thiệu', 'Web catalogue', 'Chưa chắc, cần tư vấn'].includes(lead.plan) ||
-      p.website || !/^0\d{9}$/.test(normalizePhone_(lead.phone))) throw new Error('INVALID');
+      p.website || !/^(?:0[35789]\d{8}|02\d{9})$/.test(normalizePhone_(lead.phone))) throw new Error('INVALID');
   return lead;
 }
 
 function normalizePhone_(phone) {
-  return String(phone).replace(/^'/, '').replace(/\D/g, '').replace(/^84(?=\d{9}$)/, '0');
+  return String(phone).replace(/^'/, '').replace(/\D/g, '').replace(/^84(?=\d{9,10}$)/, '0');
 }
 
 function verifyCaptcha_(p) {

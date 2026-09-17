@@ -52,6 +52,16 @@ assert.equal(rows.length, 1);
 reset(); quota = 0; assert.equal(post(valid).ok, true);
 assert.equal(rows.length, 1); assert.equal(mails, 0); assert.match(rows[0][5], /Hết hạn mức/);
 const now = Date.now();
+for (const name of ['Nguyễn Minh Anh','Đỗ Thị Mỹ','Nguyễn'.normalize('NFD'),'Anna Maria'])
+  assert.ok(context.validateLead_({...valid,name}));
+for (const name of ['Nguyễn 123','Tên@','Anh-Bình','O\'Brien','😃','Tên\nKhách'])
+  assert.throws(()=>context.validateLead_({...valid,name}),/INVALID/);
+for (const phone of ['0901234567','0351234567','0581234567','0791234567','0881234567',
+  '+84 901 234 567','84901234567','02412345678','02812345678','+84 24 1234 5678'])
+  assert.ok(context.validateLead_({...valid,phone}));
+for (const phone of ['0123456789','0612345678','1234567890','090123456','09012345678',
+  '+1 9012345678','09+01234567','090abc1234567','0241234567'])
+  assert.throws(()=>context.validateLead_({...valid,phone}),/INVALID/);
 assert.throws(() => context.enforceLimits_(Array.from({length: 20}, (_, i) =>
   ['id' + i, new Date(now - 1000), '', '0912345678']), '0901234567', now), /RATE_LIMIT/);
 assert.throws(() => context.enforceLimits_(Array.from({length: 60}, (_, i) =>
