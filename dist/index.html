@@ -64,7 +64,17 @@
     const status=document.createElement('p');status.className='lead-status';status.setAttribute('role','alert');status.setAttribute('aria-live','polite');status.hidden=true;form.insertBefore(status,submit);
     const privacy=document.createElement('p');privacy.className='lead-privacy';privacy.textContent='Thông tin được lưu qua Google để Lấy Liền liên hệ tư vấn. Chúng tôi không công khai thông tin của bạn.';form.appendChild(privacy);
     const trap=document.createElement('div');trap.className='lead-trap';trap.innerHTML='<label>Để trống trường này<input name="website" tabindex="-1" autocomplete="off"></label>';form.appendChild(trap);
-    form.elements.name.maxLength=100;form.elements.phone.maxLength=25;form.elements.phone.pattern='[+0-9 ]{8,25}';
+    form.elements.name.maxLength=100;form.elements.phone.maxLength=25;form.elements.phone.pattern='[+0-9 ().-]{8,25}';
+    const phoneInput=form.elements.phone,phoneError=document.createElement('p');phoneError.id='phone-error';phoneError.className='lead-status';phoneError.hidden=true;phoneError.setAttribute('aria-live','polite');phoneInput.setAttribute('aria-describedby','phone-error');phoneInput.parentElement.appendChild(phoneError);
+    function validatePhone(){
+      const raw=phoneInput.value.trim(),digits=raw.replace(/\D/g,'').replace(/^84(?=\d{9}$)/,'0');
+      const valid=/^[+\d ().-]{8,25}$/.test(raw)&&/^0\d{9}$/.test(digits);
+      phoneError.textContent=raw?'Nhập số điện thoại Việt Nam gồm 10 chữ số, bắt đầu bằng 0, hoặc dạng +84.':'Vui lòng nhập số điện thoại của bạn.';
+      phoneError.hidden=valid;phoneInput.setAttribute('aria-invalid',String(!valid));phoneInput.setCustomValidity(valid?'':phoneError.textContent);return valid;
+    }
+    phoneInput.addEventListener('blur',()=>{if(phoneInput.value||!phoneError.hidden)validatePhone()});
+    phoneInput.addEventListener('input',()=>{if(!phoneError.hidden)validatePhone();else phoneInput.setCustomValidity('')});
+    phoneInput.addEventListener('invalid',e=>{e.preventDefault();validatePhone();phoneInput.focus()});
     const receiver=document.createElement('iframe');receiver.name='lead-receiver';receiver.title='Tiếp nhận yêu cầu';receiver.hidden=true;document.body.appendChild(receiver);
     let busy=false,requestId='',fingerprint='',timer=null,pendingId='',captchaToken='',captchaWidget=null;
     const captchaBox=document.createElement('div');captchaBox.style.cssText='margin:16px 0 0;display:flex;justify-content:center;min-width:0';captchaBox.setAttribute('aria-label','Xác minh chống spam');form.insertBefore(captchaBox,submit);
@@ -73,7 +83,7 @@
       if(!window.turnstile||!modal.open||captchaWidget!==null)return;
       const size=captchaBox.getBoundingClientRect().width>=300?'flexible':'compact';
       captchaWidget=window.turnstile.render(captchaBox,{sitekey:'0x4AAAAAAE5-wJyxSbcuaCuk',action:'lead',theme:'light',size,'response-field':false,
-        callback:token=>{captchaToken=token;if(!busy)status.hidden=true;},
+        callback:token=>{captchaToken=token;},
         'expired-callback':()=>{captchaToken='';},
         'error-callback':()=>{captchaToken='';if(!busy){status.textContent='Không tải được xác minh chống spam. Vui lòng kiểm tra mạng rồi tải lại trang.';status.hidden=false;}return true;}
       });
@@ -96,7 +106,7 @@
       document.querySelector('.form-view').style.display='none';document.querySelector('.success').style.display='block';document.querySelector('#done').focus();
     });
     form.addEventListener('submit',e=>{
-      e.preventDefault();if(busy||!form.reportValidity())return;
+      e.preventDefault();if(busy)return;if(!validatePhone()){phoneInput.focus();return;}if(!form.reportValidity())return;
       const values={name:form.elements.name.value.trim(),phone:form.elements.phone.value.trim(),plan:plan.value,website:form.elements.website.value};
       if(!values.name){form.elements.name.setCustomValidity('Vui lòng nhập tên của bạn.');form.elements.name.reportValidity();return;}
       if(!captchaToken){status.textContent='Vui lòng hoàn tất xác minh chống spam trước khi gửi.';status.hidden=false;return;}
@@ -111,7 +121,7 @@
     form.elements.name.addEventListener('input',()=>form.elements.name.setCustomValidity(''));
     form.addEventListener('input',()=>{if(!busy)pendingId=''});
     document.querySelector('#done').addEventListener('click',()=>{
-      modal.close();document.querySelector('.form-view').style.display='block';document.querySelector('.success').style.display='none';form.reset();resetCaptcha();status.hidden=true;requestId='';fingerprint='';pendingId='';
+      modal.close();document.querySelector('.form-view').style.display='block';document.querySelector('.success').style.display='none';form.reset();phoneError.hidden=true;phoneInput.setCustomValidity('');phoneInput.setAttribute('aria-invalid','false');resetCaptcha();status.hidden=true;requestId='';fingerprint='';pendingId='';
     });
   </script>
 </body>

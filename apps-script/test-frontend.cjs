@@ -4,6 +4,7 @@ let boxWidth=400;
 function node(){return {style:{},listeners:{},children:[],value:'',disabled:false,getBoundingClientRect(){return {width:boxWidth}},addEventListener(k,f){this.listeners[k]=f},setAttribute(){},appendChild(x){this.children.push(x)},insertBefore(x){this.children.push(x)},remove(){},focus(){},setCustomValidity(){},reportValidity(){return true}};}
 const form=node(),modal=node(),submit=node(),close=node(),done=node(),view=node(),success=node(),body=node();
 form.elements={name:node(),phone:node(),plan:node(),website:node()};
+form.elements.phone.parentElement=node();
 form.elements.name.value='Test';form.elements.phone.value='0901234567';form.elements.plan.value='Web 1 trang';
 form.querySelector=()=>submit;form.querySelectorAll=()=>[...Object.values(form.elements),submit];form.reset=()=>{};
 modal.open=true;modal.showModal=()=>{modal.open=true;};modal.close=()=>{modal.open=false;};
@@ -18,6 +19,13 @@ assert.equal(options.size,'flexible');boxWidth=260;window.listeners.resize();ass
 boxWidth=400;window.listeners.resize();assert.equal(options.size,'flexible');
 const send=()=>form.listeners.submit({preventDefault(){}});
 const reply=(origin,id,ok,code)=>window.listeners.message({origin,data:{type:'laylien-lead-result',requestId:id,ok,code}});
+const phoneError=form.elements.phone.parentElement.children[0];
+form.elements.phone.value='1234567890';send();assert.equal(phoneError.hidden,false);assert.equal(count,0);
+options.callback('valid-captcha');assert.equal(phoneError.hidden,false,'CAPTCHA must not hide phone error');
+const status=form.children.find(x=>x.className==='lead-status');status.hidden=false;status.textContent='Server validation error';
+options.callback('new-captcha');assert.equal(status.hidden,false,'CAPTCHA must not hide server error');
+form.elements.phone.value='0901234567';form.elements.phone.listeners.input();assert.equal(phoneError.hidden,true);
+options['expired-callback']();
 send();assert.equal(count,0,'missing CAPTCHA blocked');
 options.callback('first-token');send();assert.equal(count,1);assert.equal(posted['cf-turnstile-response'],'first-token');
 send();assert.equal(count,1,'double submit blocked');
