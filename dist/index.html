@@ -31,13 +31,14 @@
     .mark:after{content:'H';border:0;left:0;top:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--acid);font:800 19px "Be Vietnam Pro"}.brand .mark:after{left:0}
     .hero-demo{height:370px;margin:0;border:0;border-radius:0;background:#edf3f7}.hero-demo iframe{transform:scale(.43)}.hero .demo-label{color:white}@media(max-width:520px){.hero-demo{height:290px}.hero-demo iframe{transform:scale(.30)}}
     .modal{max-height:calc(100dvh - 24px);max-height:calc(var(--lead-visible-height,100dvh) - 24px);overflow-y:auto;overscroll-behavior:contain}.modal-body,.form-view,#leadForm,.field{min-width:0}.field input,.field select{min-width:0}.lead-captcha{margin:16px 0 0;width:100%;min-width:0;display:flex;justify-content:center}.lead-captcha>div{max-width:100%}.lead-status,.lead-privacy{overflow-wrap:anywhere}@media(max-width:400px){.modal{width:calc(100% - 24px);max-width:calc(100% - 24px);border-radius:20px}.modal-body{padding:18px 16px}.modal h3{font-size:27px;line-height:1.25}.modal .x{width:32px;height:32px;margin-left:8px}.form-view>p{font-size:14px;margin-bottom:16px}.modal .btn{padding:14px 12px;font-size:14px}}@media(max-height:500px){.modal-body{padding-top:16px;padding-bottom:16px}}
+    .nav-actions{display:flex;align-items:center;gap:10px}.language-toggle{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:999px;background:transparent;padding:10px 12px;cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap}.language-toggle [aria-current="true"]{color:var(--ink);font-weight:800}.language-toggle:focus-visible{outline:2px solid var(--ink);outline-offset:3px}html[lang="en"] h1{font-size:clamp(48px,6vw,82px);line-height:1.05}html[lang="en"] .badge{position:static;align-self:flex-start;margin-bottom:16px}@media(max-width:520px){.nav-actions{gap:6px}.language-toggle{padding:9px 8px}.nav-actions .navcta{padding:10px;font-size:11px}.brand{font-size:12px}html[lang="en"] h1{font-size:48px}}@media(max-width:359px){.nav-actions .navcta{display:none}}
   </style>
 </head>
 <body>
   <header class="wrap nav">
     <a class="brand" href="#"><span class="mark"></span>HỎA TỐC STUDIO</a>
     <nav class="navlinks" aria-label="Điều hướng chính"><a href="#du-an">Dự án</a><a href="#goi-dich-vu">Gói dịch vụ</a><a href="#chi-phi">Bàn giao</a><a href="#lien-he">Liên hệ</a></nav>
-    <button class="navcta open-modal">Nhận tư vấn <span>↗</span></button>
+    <div class="nav-actions"><button class="language-toggle" type="button" id="languageToggle" aria-label="Switch to English"><span data-language="vi" aria-current="true">VI</span><span aria-hidden="true">/</span><span data-language="en">EN</span></button><button class="navcta open-modal">Nhận tư vấn <span>↗</span></button></div>
   </header>
 
   <main>
@@ -99,16 +100,18 @@
   <div class="contact-dock" aria-label="Liên hệ nhanh"><a href="tel:0932108721" aria-label="Gọi studio: 0932 108 721">Gọi</a><a href="https://zalo.me/0932108721" target="_blank" rel="noopener noreferrer">Zalo</a><button class="open-modal">Nhận tư vấn</button></div>
 
   <dialog class="modal" id="leadModal"><div class="modal-body"><button class="x" aria-label="Đóng">×</button><div class="form-view"><h3>Trao đổi về web của bạn.</h3><p>Để lại thông tin để trao đổi yêu cầu, phạm vi và báo giá. Nếu cần hỏa tốc, chúng tôi sẽ xác nhận lịch phù hợp.</p><form id="leadForm"><div class="field"><label for="name">Tên của bạn</label><input id="name" name="name" required autocomplete="name" placeholder="Nguyễn Minh Anh"></div><div class="field"><label for="phone">Số điện thoại</label><input id="phone" name="phone" required inputmode="tel" autocomplete="tel" placeholder="09xx xxx xxx"></div><div class="field"><label for="plan">Bạn cần</label><select id="plan" name="plan"><option>Web 1 trang</option><option>Web giới thiệu</option><option>Web catalogue</option><option>Chưa chắc, cần tư vấn</option></select></div><button class="btn acid" type="submit">Gửi yêu cầu tư vấn <span>→</span></button></form></div><div class="success"><div class="check">✓</div><h3>Đã nhận yêu cầu tư vấn.</h3><p>Thông tin của bạn đã được lưu. Đội ngũ Hỏa Tốc Studio sẽ liên hệ trao đổi yêu cầu và tiến độ phù hợp.</p><button class="btn" id="done">Hoàn tất</button></div></div></dialog>
+  <script src="assets/i18n.js"></script>
   <script>
+    const leadText=text=>window.siteText?window.siteText(text):text;
     const endpoint='https://script.google.com/macros/s/AKfycbxnZf3eEofwlAaFTeiEVe0e0Nu6GLmonEE8eYf-aOabZ9JNdcGd5Xy7FoeI0ngFEOox/exec';
     const modal=document.querySelector('#leadModal'),plan=document.querySelector('#plan'),form=document.querySelector('#leadForm');
     const submit=form.querySelector('[type="submit"]'),close=document.querySelector('.x');
     const status=document.createElement('p');status.className='lead-status';status.setAttribute('role','alert');status.setAttribute('aria-live','polite');status.hidden=true;form.insertBefore(status,submit);
-    const privacy=document.createElement('p');privacy.className='lead-privacy';privacy.textContent='Hỏa Tốc Studio sử dụng thông tin bạn gửi để liên hệ tư vấn. Thông tin của bạn không được công khai.';form.appendChild(privacy);
+    const privacy=document.createElement('p');privacy.className='lead-privacy';privacy.textContent=leadText('Hỏa Tốc Studio sử dụng thông tin bạn gửi để liên hệ tư vấn. Thông tin của bạn không được công khai.');form.appendChild(privacy);
     const trap=document.createElement('div');trap.className='lead-trap';trap.innerHTML='<label>Để trống trường này<input name="website" tabindex="-1" autocomplete="off"></label>';form.appendChild(trap);
     form.elements.name.maxLength=100;form.elements.phone.maxLength=25;form.elements.phone.pattern='[+0-9 .-]{8,25}';
     const nameInput=form.elements.name,nameError=document.createElement('p');nameError.id='name-error';nameError.className='lead-status';nameError.hidden=true;nameError.setAttribute('aria-live','polite');nameInput.setAttribute('aria-describedby','name-error');nameInput.parentElement.appendChild(nameError);
-    function validateName(){const value=nameInput.value.normalize('NFC').trim(),valid=value.length<=100&&/^\p{L}+(?: +\p{L}+)*$/u.test(value);nameError.textContent=value?'Tên chỉ được chứa chữ cái và khoảng trắng, không chứa số hoặc ký tự đặc biệt.':'Vui lòng nhập tên của bạn.';nameError.hidden=valid;nameInput.setAttribute('aria-invalid',String(!valid));nameInput.setCustomValidity(valid?'':nameError.textContent);return valid;}
+    function validateName(){const value=nameInput.value.normalize('NFC').trim(),valid=value.length<=100&&/^\p{L}+(?: +\p{L}+)*$/u.test(value);nameError.textContent=leadText(value?'Tên chỉ được chứa chữ cái và khoảng trắng, không chứa số hoặc ký tự đặc biệt.':'Vui lòng nhập tên của bạn.');nameError.hidden=valid;nameInput.setAttribute('aria-invalid',String(!valid));nameInput.setCustomValidity(valid?'':nameError.textContent);return valid;}
     nameInput.addEventListener('blur',()=>{if(nameInput.value||!nameError.hidden)validateName()});
     nameInput.addEventListener('input',()=>{if(!nameError.hidden)validateName();else nameInput.setCustomValidity('')});
     nameInput.addEventListener('invalid',e=>{e.preventDefault();validateName();nameInput.focus()});
@@ -116,7 +119,7 @@
     function validatePhone(){
       const raw=phoneInput.value.trim(),digits=raw.replace(/\D/g,'').replace(/^84(?=\d{9,10}$)/,'0');
       const valid=raw.length<=25&&/^(?:0|\+?84)[0-9 .-]+$/.test(raw)&&/^(?:0[35789]\d{8}|02\d{9})$/.test(digits);
-      phoneError.textContent=raw?'Nhập số Việt Nam: di động 10 chữ số đầu 03, 05, 07, 08, 09; hoặc điện thoại bàn 11 chữ số đầu 02. Có thể dùng +84 thay cho 0.':'Vui lòng nhập số điện thoại của bạn.';
+      phoneError.textContent=leadText(raw?'Nhập số Việt Nam: di động 10 chữ số đầu 03, 05, 07, 08, 09; hoặc điện thoại bàn 11 chữ số đầu 02. Có thể dùng +84 thay cho 0.':'Vui lòng nhập số điện thoại của bạn.');
       phoneError.hidden=valid;phoneInput.setAttribute('aria-invalid',String(!valid));phoneInput.setCustomValidity(valid?'':phoneError.textContent);return valid;
     }
     phoneInput.addEventListener('blur',()=>{if(phoneInput.value||!phoneError.hidden)validatePhone()});
@@ -134,12 +137,12 @@
       captchaWidget=window.turnstile.render('#leadCaptcha',{sitekey:'0x4AAAAAAE5-wJyxSbcuaCuk',action:'lead',theme:'light',size,'response-field':false,
         callback:token=>{captchaToken=token;},
         'expired-callback':()=>{captchaToken='';},
-        'error-callback':()=>{captchaToken='';if(!busy){status.textContent='Không tải được xác minh chống spam. Vui lòng kiểm tra mạng rồi tải lại trang.';status.hidden=false;}return true;}
+        'error-callback':()=>{captchaToken='';if(!busy){status.textContent=leadText('Không tải được xác minh chống spam. Vui lòng kiểm tra mạng rồi tải lại trang.');status.hidden=false;}return true;}
       });
     };
-    const captchaScript=document.createElement('script');captchaScript.src='https://challenges.cloudflare.com/turnstile/v0/api.js?onload=initializeLeadCaptcha&render=explicit';captchaScript.async=true;captchaScript.onerror=()=>{status.textContent='Không tải được xác minh chống spam. Vui lòng tải lại trang hoặc tắt tiện ích chặn nội dung cho trang này.';status.hidden=false;};document.body.appendChild(captchaScript);
-    function setBusy(value){busy=value;form.setAttribute('aria-busy',String(value));form.querySelectorAll('input,select,button').forEach(x=>x.disabled=value);close.disabled=value;submit.textContent=value?'Đang gửi yêu cầu…':'Gửi yêu cầu tư vấn →';}
-    function fail(message){clearTimeout(timer);setBusy(false);resetCaptcha();status.textContent=message;status.hidden=false;}
+    const captchaScript=document.createElement('script');captchaScript.src='https://challenges.cloudflare.com/turnstile/v0/api.js?onload=initializeLeadCaptcha&render=explicit';captchaScript.async=true;captchaScript.onerror=()=>{status.textContent=leadText('Không tải được xác minh chống spam. Vui lòng tải lại trang hoặc tắt tiện ích chặn nội dung cho trang này.');status.hidden=false;};document.body.appendChild(captchaScript);
+    function setBusy(value){busy=value;form.setAttribute('aria-busy',String(value));form.querySelectorAll('input,select,button').forEach(x=>x.disabled=value);close.disabled=value;submit.textContent=leadText(value?'Đang gửi yêu cầu…':'Gửi yêu cầu tư vấn →');}
+    function fail(message){clearTimeout(timer);setBusy(false);resetCaptcha();status.textContent=leadText(message);status.hidden=false;}
     document.querySelectorAll('.open-modal').forEach(b=>b.addEventListener('click',()=>{if(busy)return;if(b.dataset.plan)plan.value=b.dataset.plan;updateModalViewport();modal.showModal();window.initializeLeadCaptcha()}));
     window.addEventListener('resize',()=>{updateModalViewport();if(busy||!modal.open||captchaWidget===null||desiredCaptchaSize()===captchaSize)return;captchaToken='';window.turnstile.remove(captchaWidget);captchaWidget=null;window.initializeLeadCaptcha();});
     if(window.visualViewport)window.visualViewport.addEventListener('resize',updateModalViewport);
@@ -158,8 +161,8 @@
     form.addEventListener('submit',e=>{
       e.preventDefault();if(busy)return;const nameValid=validateName(),phoneValid=validatePhone();if(!nameValid){nameInput.focus();return;}if(!phoneValid){phoneInput.focus();return;}if(!form.reportValidity())return;
       const values={name:form.elements.name.value.normalize('NFC').trim(),phone:form.elements.phone.value.trim(),plan:plan.value,website:form.elements.website.value};
-      if(!values.name){form.elements.name.setCustomValidity('Vui lòng nhập tên của bạn.');form.elements.name.reportValidity();return;}
-      if(!captchaToken){status.textContent='Vui lòng hoàn tất xác minh chống spam trước khi gửi.';status.hidden=false;return;}
+      if(!values.name){form.elements.name.setCustomValidity(leadText('Vui lòng nhập tên của bạn.'));form.elements.name.reportValidity();return;}
+      if(!captchaToken){status.textContent=leadText('Vui lòng hoàn tất xác minh chống spam trước khi gửi.');status.hidden=false;return;}
       const next=JSON.stringify(values);if(next!==fingerprint){fingerprint=next;requestId=crypto.randomUUID();}pendingId=requestId;
       status.hidden=true;setBusy(true);
       const transport=document.createElement('form');transport.method='POST';transport.action=endpoint;transport.target=receiver.name;transport.hidden=true;
@@ -168,6 +171,7 @@
       timer=setTimeout(()=>fail('Chưa xác nhận được yêu cầu đã gửi. Thông tin vẫn được giữ; bạn có thể thử lại hoặc liên hệ trực tiếp.'),60000);
       try{transport.submit();}catch{pendingId='';fail('Không thể gửi yêu cầu. Vui lòng thử lại.');}finally{transport.remove();}
     });
+    window.addEventListener('site-language-change',()=>{if(!nameError.hidden)validateName();if(!phoneError.hidden)validatePhone();});
     form.addEventListener('input',()=>{if(!busy)pendingId=''});
     document.querySelector('#done').addEventListener('click',()=>{
       modal.close();document.querySelector('.form-view').style.display='block';document.querySelector('.success').style.display='none';form.reset();nameError.hidden=true;nameInput.setCustomValidity('');nameInput.setAttribute('aria-invalid','false');phoneError.hidden=true;phoneInput.setCustomValidity('');phoneInput.setAttribute('aria-invalid','false');resetCaptcha();status.hidden=true;requestId='';fingerprint='';pendingId='';
