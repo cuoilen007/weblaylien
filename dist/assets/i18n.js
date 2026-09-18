@@ -1,6 +1,9 @@
 /* Public presentation copy only. Form payload values remain in Vietnamese. */
 (() => {
   'use strict';
+  // Studio-approved fixed conversion, not a live exchange rate.
+  const VND_PER_USD = 35000;
+  const usdPrice = vnd => `US$${(vnd / VND_PER_USD).toFixed(2)}`;
   const translations = {
     'Dự án':'Projects','Gói dịch vụ':'Packages','Bàn giao':'Handover','Liên hệ':'Contact','Nhận tư vấn':'Consult',
     'Thiết kế riêng · Triển khai nhanh':'Custom design · Fast delivery','Thiết kế riêng.':'Custom design.','Triển khai nhanh.':'Fast delivery.',
@@ -23,7 +26,7 @@
     'Trình bày dịch vụ, quy trình hợp tác và thông tin liên hệ theo phong cách doanh nghiệp hiện đại.':'Services, collaboration process and contact details presented in a modern business layout.','Xem demo AXIS ↗':'Explore AXIS ↗',
     'Gói và giá':'Packages & pricing','Đúng nhu cầu.':'The right fit.','Rõ chi phí.':'Clear pricing.',
     'Website giới thiệu, thiết kế theo thương hiệu. Phạm vi cụ thể được xác nhận trong báo giá trước khi triển khai.':'Presentation websites designed for your brand. The exact scope is confirmed in your quote before work begins.',
-    'Web 1 trang':'One-page website','Giới thiệu một sản phẩm hoặc dịch vụ':'Present a product or service','2,9 triệu':'VND 2.9m','4,9 triệu':'VND 4.9m','6,9 triệu':'VND 6.9m','Từ':'From',
+    'Web 1 trang':'One-page website','Giới thiệu một sản phẩm hoặc dịch vụ':'Present a product or service','2,9 triệu':usdPrice(2900000),'4,9 triệu':usdPrice(4900000),'6,9 triệu':usdPrice(6900000),'Từ':'From',
     '01 trang, tối đa 06 khối nội dung':'1 page, up to 6 content sections','Thiết kế riêng theo thương hiệu':'Custom design for your brand','02 vòng chỉnh sửa trong phạm vi':'2 revision rounds within scope','Nút gọi, Zalo và form tư vấn':'Call and Zalo buttons, plus an enquiry form',
     'Tặng tên miền năm đầu':'Complimentary domain for year one','Tặng hosting 01 năm cho web giao diện':'1 year of hosting for presentation-only websites','Tư vấn gói này':'Discuss this package',
     'GIỚI THIỆU THƯƠNG HIỆU':'BUSINESS PRESENTATION','Web giới thiệu':'Business website','Doanh nghiệp cần hiện diện chuyên nghiệp':'For a professional business presence','Tối đa 05 trang giới thiệu':'Up to 5 presentation pages','Tối đa 03 bố cục thiết kế khác nhau':'Up to 3 distinct page layouts',
