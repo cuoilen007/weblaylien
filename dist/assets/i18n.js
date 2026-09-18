@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   // Studio-approved fixed conversion, not a live exchange rate.
-  const VND_PER_USD = 35000;
+  const VND_PER_USD = 15000;
   const usdPrice = vnd => `US$${(vnd / VND_PER_USD).toFixed(2)}`;
   const translations = {
     'Dự án':'Projects','Gói dịch vụ':'Packages','Bàn giao':'Handover','Liên hệ':'Contact','Nhận tư vấn':'Consult',
